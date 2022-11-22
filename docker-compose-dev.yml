@@ -1,0 +1,6 @@
+version: "0.1"
+services:
+  backend:
+    image: library/python:3.10.7-slim
+    command: []
+    volumes:
