@@ -4,9 +4,8 @@ from sanic.response import json
 from sanic_jwt import initialize
 from sanic_openapi import swagger_blueprint
 from tortoise.contrib.sanic import register_tortoise
-
 from apps.user.api import authenticate, retrieve_user
-from apps.user.api import user_bp
+from router.route import api, inner_api
 from config.BaseConfig import BaseConfig
 from config.Config import Config
 from exception.UserException import UserAddException, MissParameters, UserDeleteException
@@ -63,18 +62,15 @@ async def delete_user_exception_handle(request, exception):
 
 
 app.config.update_config(BaseConfig)
-register_tortoise(
-    app,
-    config=app.config["DB_CONFIG"],
-    generate_schemas=True
-)
+register_tortoise(app, config=app.config["DB_CONFIG"], generate_schemas=True)
 
 initialize(app,
            authenticate=authenticate,
            retrieve_user=retrieve_user,
            url_prefix="v1/api/auth")
 
-app.blueprint(user_bp)
+app.blueprint([api, inner_api])
+
 if __name__ == '__main__':
     port = int(Config.get_instance().get('http.port', 80))
     app.run(host="0.0.0.0", port=port)

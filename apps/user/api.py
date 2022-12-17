@@ -12,7 +12,7 @@ from utils.logger import logger
 from utils.DateEncoder import DateEncoder
 from service.user_service import UserService
 
-user_bp = Blueprint("user", url_prefix="/api/user", version=1)
+user_bp = Blueprint("user", url_prefix="/user")
 
 
 @user_bp.route("/user_list", methods=["GET"])

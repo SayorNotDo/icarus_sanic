@@ -7,6 +7,26 @@ service Greeter {
     rpc SayHello (HelloRequest) returns (HelloReply) {}
 }
 
+service TaskManager {
+    rpc Execute (TaskRequest) returns (TaskReply) {}
+    rpc Pause (TaskRequest) returns (TaskReply) {}
+    rpc Resume (TaskRequest) returns (TaskReply) {}
+    rpc Cancel (TaskRequest) returns (TaskReply) {}
+}
+
+// The request message containing
+// task's name, case, command
+message TaskRequest {
+    string name = 1;
+    string case = 2;
+    string command = 3;
+}
+
+message TaskReply {
+    string message = 1;
+}
+
+
 // The request message containing the user's name.
 message HelloRequest {
     string name = 1;

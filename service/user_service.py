@@ -1,4 +1,4 @@
-from decorator.singleton import singleton
+from decorators.singleton import singleton
 from apps.user.models import User
 
 
