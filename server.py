@@ -3,7 +3,7 @@ from sanic.exceptions import RequestTimeout, NotFound
 from sanic.response import json
 from sanic_openapi import swagger_blueprint
 from tortoise.contrib.sanic import register_tortoise
-from router.route import api, inner_api
+from router.route import inner_api
 from config.Config import Config
 from exception.UserException import UserAddException, MissParameters, UserDeleteException
 from static.StatusCode import StatusCode
@@ -63,7 +63,9 @@ register_tortoise(app,
                   modules={"models": ["apps.user.models"]},
                   generate_schemas=True)
 
-app.blueprint([api, inner_api])
+app.blueprint([
+    inner_api,
+])
 
 if __name__ == '__main__':
     port = int(Config.get_instance().get('http.port', 80))

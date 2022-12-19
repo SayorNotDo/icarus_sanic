@@ -1,4 +1,4 @@
-from BaseModel import BaseModel
+from .BaseModel import BaseModel
 from tortoise.queryset import (
     QuerySet,
     QuerySetSingle,
@@ -19,6 +19,12 @@ class BaseRepository:
     MODEL_CLASS = BaseModel
     SAVE_BATCH_SIZE = 1000
 
+    async def create(self, filter_kw: dict, create_kw: dict) -> bool:
+        if await self.exists(filter_kw=filter_kw, exclude_kw=dict()):
+            return False
+        await self.MODEL_CLASS.create(**create_kw)
+        return True
+
     def save(self, obj) -> bool:
         if not obj:
             return False
@@ -28,7 +34,7 @@ class BaseRepository:
     def save_batch(self, objs, *, batch_size=SAVE_BATCH_SIZE) -> bool:
         if not objs:
             return False
-        self.MODEL_CLASS.objects.bulk_save(objs, batch_size=batch_size)
+        self.MODEL_CLASS.bulk_save(objs, batch_size=batch_size)
         return True
 
     def delete(self, obj) -> bool:
@@ -45,8 +51,7 @@ class BaseRepository:
         return True
 
     def delete_batch_by_query(self, filter_kw: dict, exclude_kw: dict) -> bool:
-        self.MODEL_CLASS.objects.filter(**filter_kw).exclude(
-            **exclude_kw).delete()
+        self.MODEL_CLASS.filter(**filter_kw).exclude(**exclude_kw).delete()
         return True
 
     def delete_by_fake(self, obj) -> bool:
@@ -71,17 +76,17 @@ class BaseRepository:
 
     def update_batch_by_query(self, filter_kw: dict, exclude_kw: dict,
                               newattrs_kwargs: dict) -> bool:
-        self.MODEL_CLASS.objects.filter(**filter_kw).exclude(
-            **exclude_kw).update(**newattrs_kwargs)
+        self.MODEL_CLASS.filter(**filter_kw).exclude(**exclude_kw).update(
+            **newattrs_kwargs)
 
     def query(self, filter_kw: dict,
               exclude_kw: dict) -> QuerySetSingle[Optional[MODEL]]:
-        return self.MODEL_CLASS.objects.filter(**filter_kw).exclude(
+        return self.MODEL_CLASS.filter(**filter_kw).exclude(
             **exclude_kw).first()
 
     def query_set(self, filter_kw: dict, exclude_kw: dict,
                   order_bys: list) -> QuerySet[MODEL]:
-        query_result = self.MODEL_CLASS.objects.filter(**filter_kw).exclude(
+        query_result = self.MODEL_CLASS.filter(**filter_kw).exclude(
             **exclude_kw)
         if order_bys:
             query_result.order_by(*order_bys)
@@ -91,10 +96,10 @@ class BaseRepository:
                   order_bys: list) -> list:
         return self.query_set(filter_kw, exclude_kw, order_bys)
 
-    def exists(self, filter_kw: dict, exclude_kw: dict) -> bool:
-        return self.MODEL_CLASS.objects.filter(**filter_kw).exclude(
-            **exclude_kw).exists()
+    async def exists(self, filter_kw: dict, exclude_kw: dict) -> bool:
+        return await self.MODEL_CLASS.filter(**filter_kw).exclude(**exclude_kw
+                                                                  ).exists()
 
     def count(self, filter_kw: dict, exclude_kw: dict) -> int:
-        return self.MODEL_CLASS.objects.filter(**filter_kw).exclude(
+        return self.MODEL_CLASS.filter(**filter_kw).exclude(
             **exclude_kw).count()

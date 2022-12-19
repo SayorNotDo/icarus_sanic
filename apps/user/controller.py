@@ -10,15 +10,15 @@ from static.StatusCode import StatusCode
 from exception.UserException import UserNotExist, MissParameters
 from utils.logger import logger
 from utils.DateEncoder import DateEncoder
-from service.user_service import UserService
+from .service import user_login
 
 user_bp = Blueprint("user", url_prefix="/user")
 
 
-@user_bp.route("/user_list", methods=["GET"])
-async def user_list(request):
-    users = await User.all()
-    print("________________debug: ", users)
+@user_bp.route("/login", methods=["POST"])
+async def login(request):
+    res = await user_login(username="admin", token="", access_token="")
+    print("========> ", res)
     response = ResponseBody(message="check",
                             status_code=StatusCode.MISSPARAMETERS.name)
     return json(response.__dict__)
@@ -29,8 +29,9 @@ async def validate_password(request):
     username = request.json.get("username", None)
     password = request.json.get("password", None)
     if not username or not password:
-        response = ResponseBody(message="username or password empty",
-                                status_code=StatusCode.USERNAME_OR_PASSWORD_EMPTY.name)
+        response = ResponseBody(
+            message="username or password empty",
+            status_code=StatusCode.USERNAME_OR_PASSWORD_EMPTY.name)
         return json(response.__dict__)
     user = await User.filter(username=username, password=password).first()
     if not user:
@@ -82,31 +83,24 @@ async def retrieve_user(request, payload, *args, **kwargs):
 
 
 @user_bp.route("/add_user", methods=["POST"])
-# @inject_user()
-# @protected()
 async def add_user(request, user=None):
     """ add a user, need administrator identify """
     print(request.json)
-    response = ResponseBody(
-        message="check", status_code=200)
+    response = ResponseBody(message="check", status_code=200)
     return json(response.__dict__)
 
 
 @user_bp.route("/get_all_user_information", methods=["GET"])
-@inject_user()
-@protected()
 async def get_all_user_information(request, user):
     if not user.role:
         raise Unauthorized("You have no authorized to get user information")
     users = User.all()
-    response = ResponseBody(
-        message=users, status_code=StatusCode.PERMISSION_AVAILABLE.name)
+    response = ResponseBody(message=users,
+                            status_code=StatusCode.PERMISSION_AVAILABLE.name)
     return json(response.__dict__)
 
 
 @user_bp.route("/get_user_information", methods=["GET"])
-@inject_user()
-@protected()
 async def get_user_information(request, user):
     if not request.json:
         raise MissParameters("no parameter send")
@@ -122,5 +116,6 @@ async def get_user_information(request, user):
     print("_____________debug: ", user_info.__dict__)
     if user_info:
         response = ResponseBody(
-            message=user_info.__dict__, status_code=StatusCode.PERMISSION_AVAILABLE.name)
+            message=user_info.__dict__,
+            status_code=StatusCode.PERMISSION_AVAILABLE.name)
         return json(response.__dict__)
