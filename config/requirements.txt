@@ -11,3 +11,6 @@ confluent-kafka==1.9.2
 grpcio==1.50.0
 grpcio-tools==1.50.0
 protobuf==4.21.9
+sanic==22.9.0
+sanic-ext==22.9.0
+aiosqlite==0.17.0

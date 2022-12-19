@@ -1,12 +1,9 @@
 from sanic import Sanic
 from sanic.exceptions import RequestTimeout, NotFound
 from sanic.response import json
-from sanic_jwt import initialize
 from sanic_openapi import swagger_blueprint
 from tortoise.contrib.sanic import register_tortoise
-from apps.user.api import authenticate, retrieve_user
 from router.route import api, inner_api
-from config.BaseConfig import BaseConfig
 from config.Config import Config
 from exception.UserException import UserAddException, MissParameters, UserDeleteException
 from static.StatusCode import StatusCode
@@ -61,13 +58,10 @@ async def delete_user_exception_handle(request, exception):
     return json(response, 401)
 
 
-app.config.update_config(BaseConfig)
-register_tortoise(app, config=app.config["DB_CONFIG"], generate_schemas=True)
-
-initialize(app,
-           authenticate=authenticate,
-           retrieve_user=retrieve_user,
-           url_prefix="v1/api/auth")
+register_tortoise(app,
+                  db_url="sqlite://db.sqlite3",
+                  modules={"models": ["apps.user.models"]},
+                  generate_schemas=True)
 
 app.blueprint([api, inner_api])
 
