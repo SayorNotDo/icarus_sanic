@@ -1,19 +1,18 @@
 from tortoise import Model, fields
-
+import datetime
 
 class User(Model):
     uid = fields.IntField(pk=True)
     username = fields.CharField(50)
     chinese_name = fields.CharField(50)
-    employee_id = fields.IntField()
+    employee_id = fields.CharField(50)
     department = fields.CharField(255)
     position = fields.CharField(255)
     email = fields.TextField()
     phone = fields.CharField(255)
     join_date = fields.DateField()
     last_login_time = fields.DatetimeField()
-    token = fields.TextField()
-    access_token = fields.TextField()
+    authorize_token = fields.TextField()
 
     class Meta:
         table = "user"
@@ -24,19 +23,16 @@ class User(Model):
         return f"{self.employee_id}-{self.username}-{self.chinese_name}-{self.position}"
 
 
-def user_dict() -> dict:
+def user_dict(json_resp) -> dict:
     return {
-        "uid": None,
-        "username": "",
-        "chinese_name": "",
-        "employee_id": "",
-        "department": "",
-        "position": "",
-        "email": "",
-        "password": "",
-        "phone": "",
-        "join_date": "",
-        "last_login_date": "",
-        "token": "",
-        "access_token": "",
+        "uid": json_resp["Uid"],
+        "username": json_resp["Username"],
+        "chinese_name": json_resp["ChineseName"],
+        "employee_id": json_resp["EmployeeId"],
+        "department": json_resp["Department"],
+        "position": json_resp["Position"],
+        "email": json_resp["Email"],
+        "phone": json_resp["Phone"],
+        "join_date": json_resp["JoinDate"],
+        "last_login_time": datetime.datetime.now(),
     }

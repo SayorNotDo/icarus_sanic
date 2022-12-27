@@ -11,8 +11,11 @@ if TYPE_CHECKING:  # pragma: nocoverage
 MODEL = TypeVar("MODEL", bound="Model")
 
 
-async def user_login(username, token,
-                     access_token) -> QuerySetSingle[Optional[MODEL]]:
+async def user_login(username=None,
+                     password=None) -> QuerySetSingle[Optional[MODEL]]:
+    res = await get_token(username, password)
+    if not res:
+        return None
     filter_kw = {"username": username}
     exclude_kw = {}
     try:
@@ -20,23 +23,36 @@ async def user_login(username, token,
         is_exists = await newUserRepository.exists(filter_kw=filter_kw,
                                                    exclude_kw=exclude_kw)
         if not is_exists:
-            user_info = await get_target_user(username, token)
-            res = await newUserRepository.create(filter_kw=filter_kw,
-                                                 create_kw=user_info)
-            return res
+            user_info = await get_user_info(res["authorizeToken"])
+            user_info["authorize_token"] = res["authorizeToken"]
+            return await newUserRepository.create(filter_kw=filter_kw,
+                                                  create_kw=user_info)
         user = await newUserRepository.query(filter_kw=filter_kw,
-                                             exclude_kw=exclude_kw)
-        return user
+                                       exclude_kw=exclude_kw)
+        print("========>", user.__dict__)
+        return user.__dict__
     except Exception as e:
         print(e)
         return None
 
 
-# TODO return user information from iris server through aiohttp request
-async def get_target_user(username, token):
-    async with aiohttp.ClientSession as session:
-        async with session.get('http://localhost:8080/user',
-                               params={'access_token': token}) as resp:
-            user_info = user_dict()
-            print('======> user_info: %s' % user_info)
-            print('======> debug: get_target_user', resp.status)
+async def get_user_info(authorizeToken):
+    async with aiohttp.ClientSession() as session:
+        async with session.get(
+                'http://localhost:6180/v1/api/user',
+                headers={'Authorization': f'Bearer {authorizeToken}'}) as resp:
+            json_resp = await resp.json()
+            user_info = user_dict(json_resp["data"])
+            return user_info
+
+
+async def get_token(username, password) -> dict:
+    async with aiohttp.ClientSession() as session:
+        async with session.post("http://localhost:6180/v1/api/user/authorize",
+                                json={
+                                    "username": username,
+                                    "password": password
+                                }) as response:
+            if response.status == 200:
+                res = await response.json()
+                return res["data"]

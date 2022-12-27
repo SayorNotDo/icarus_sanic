@@ -17,10 +17,10 @@ user_bp = Blueprint("user", url_prefix="/user")
 
 @user_bp.route("/login", methods=["POST"])
 async def login(request):
-    res = await user_login(username="admin", token="", access_token="")
-    print("========> ", res)
-    response = ResponseBody(message="check",
-                            status_code=StatusCode.MISSPARAMETERS.name)
+    username = request.json.get('username')
+    password = request.json.get('password')
+    res = await user_login(username, password)
+    response = ResponseBody(message="login success", data=res)
     return json(response.__dict__)
 
 
